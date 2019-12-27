@@ -1,3 +1,8 @@
+---
+Tested: 2019-12-26
+Version: v1.0.0
+---
+
 # E621 Downloader
 
 `E621MDL` is a image downloader tool to automatically download files from [e621.net](https://e621.net/).
