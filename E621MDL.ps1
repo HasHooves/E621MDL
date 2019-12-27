@@ -1,12 +1,12 @@
 ﻿[string]$logodata = "
-      ____ ___ ___                              
- ___ / __/|_  <  /                              
-/ -_) _ \/ __// /                               
-\__/\___/____/_/        __             __       
+      ____ ___ ___
+ ___ / __/|_  <  /
+/ -_) _ \/ __// /
+\__/\___/____/_/        __             __
   / _ \___ _    _____  / /__  ___ ____/ /__ ____
  / // / _ \ |/|/ / _ \/ / _ \/ _ `/ _  / -_) __/
-/____/\___/__,__/_//_/_/\___/\_,_/\_,_/\__/_/   
-                                                
+/____/\___/__,__/_//_/_/\___/\_,_/\_,_/\__/_/
+
 "
 
 # Logo credit: http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=e621%0ADownloader
@@ -53,7 +53,7 @@ PageLimit=1
 PostLimit=15
 " | Out-File -FilePath .\Default.config.txt -Encoding utf8
     Write-Host "please edit the Default.config.txt file or create your own config file, then run the script again" -ForegroundColor Yellow
-    pause 
+    pause
     Break
 }
 
@@ -65,12 +65,12 @@ if ([string]::IsNullOrWhiteSpace($UserConfig)) {
 }
 
 function Downloadfromconfig {
-    
+
     $config = $config.FullName
     $tempfilepath = (split-path $config) + "\downloads\" + (Split-Path $config -Leaf).Replace(".config.txt", "") + "\"
 
     if (!(Test-Path $tempfilepath.Trim("\"))) {
-        $temp = New-Item -Path $tempfilepath.Trim("\") -ItemType directory    
+        $temp = New-Item -Path $tempfilepath.Trim("\") -ItemType directory
     }
     $UserLog = $tempfilepath + ($config.Split("\")[-1]) -replace ("config", "log")
     if (!(Test-Path -Path $UserLog)) {
@@ -140,7 +140,7 @@ function Downloadfromconfig {
         until ($pagecounter -gt $e621Attributes.PageLimit)
 
         $tempoutput
-    }; $e621Attributes.IndexURI = GENERATEPAGES 
+    }; $e621Attributes.IndexURI = GENERATEPAGES
 
     #get all the posts!
     $weblinks = foreach ($item in $e621Attributes.IndexURI) { (Invoke-WebRequest -Uri $item).links | Where-Object { $_.href -like "/post/show/*" } }
@@ -158,22 +158,21 @@ function Downloadfromconfig {
         ##FUNCTIONS
 
         function BLACKLIST_TEST ($Post, $BlacklistedTags) {
-  
+
             $TempPostTags = (((($post.outerHTML) -split 'alt="')[1] -split '&#13')[0]).Split(" ")
             $BlacklistTestResults = foreach ($BlacklistedTag in $BlacklistedTags) { $TempPostTags -contains $BlacklistedTag }
             if ($BlacklistTestResults -contains $true) {
-                "FAIL"  
+                "FAIL"
             }
             else {
                 "PASS"
             }
-  
-    
+
         }
         function PREVIOUSLYDOWNLOADEDPOST_TEST ($Post, $PreviouslyDownloadedPosts) {
-            $TestingPostNumber = ((($Post.outerHTML) -split "&#13").trim(";") -split "`n")[0].split("/")[3]   
+            $TestingPostNumber = ((($Post.outerHTML) -split "&#13").trim(";") -split "`n")[0].split("/")[3]
             #$ItemResults += [string]::IsNullOrWhiteSpace(($PreviouslyDownloadedPosts -like $TestingPostNumber))
-    
+
             if ($PreviouslyDownloadedPosts -contains $TestingPostNumber) {
                 "FAIL"
             }
@@ -185,7 +184,7 @@ function Downloadfromconfig {
         function RATING_TEST ($Post, $Rating) {
             $PostRating = ((($Post.outerHTML) -split "&#13").trim(";") -split "`n")[2] -replace "Rating: "  #rating
             $results = foreach ($RatingTag in $Rating) { $PostRating -contains $RatingTag }
-           
+
             if ($results -contains $true) {
                 "PASS"
             }
@@ -207,14 +206,13 @@ function Downloadfromconfig {
             SCORE_TEST -Post $Post -Score $e621Attributes.Score
             RATING_TEST -Post $Post -Rating $e621Attributes.Rating
             PREVIOUSLYDOWNLOADEDPOST_TEST -Post $Post -PreviouslyDownloadedPosts (Get-Content -path $UserLog)
-            BLACKLIST_TEST -Post $Post -BlacklistedTags $e621Attributes.Blacklist            
+            BLACKLIST_TEST -Post $Post -BlacklistedTags $e621Attributes.Blacklist
         }
         ##ENDOFFUNCTIONS
         ##START PROCESS
 
         foreach ($Post in $PostsToParse) {
-    
-    
+
             if ((POSTQUALITY_TEST) -contains "FAIL") {
                 $Global:WeblinksOmitted += $Post.href
                 Write-Verbose -Message ($Post.href + " failed user selected criteria")
@@ -223,15 +221,14 @@ function Downloadfromconfig {
                 $Global:WeblinksFiltered += $Post.href
                 Write-Verbose -Message ($Post.href + " passed user selected criteria")
             }
-    
-    
+
         }
 
         ##END PROCESS
     };
     POSTQUALITYTEST -PostsToParse $weblinks -BlacklistTags $e621Attributes.Blacklist
 
-    Write-Verbose -Message ($WeblinksOmitted.count.ToString() + " posts have been omitted due to your filters!") 
+    Write-Verbose -Message ($WeblinksOmitted.count.ToString() + " posts have been omitted due to your filters!")
     $e621Attributes.PostsQueued = foreach ($item in $WeblinksFiltered) { $item.Split("/")[3] }
 
     if ($e621Attributes.PostsQueued.count -gt $e621Attributes.PostLimit) {
@@ -246,10 +243,10 @@ function Downloadfromconfig {
 
     Write-Verbose -Message ("Planning to download the following posts:" + "`n" + $WeblinksFiltered)
 
-    Write-Verbose -Message ("starting download of " + $e621Attributes.PostsQueued.Count + " posts!") 
+    Write-Verbose -Message ("starting download of " + $e621Attributes.PostsQueued.Count + " posts!")
     [int]$ProgressCounter = 0
     foreach ($item in $e621Attributes.PostsQueued) {
-    
+
         $ProgressCounter += 1
         Write-Progress -Activity "e621 Downloader" -Status ("downloading image number " + $ProgressCounter)  -PercentComplete ($ProgressCounter / $e621Attributes.PostsQueued.count * 100)
 
@@ -258,28 +255,23 @@ function Downloadfromconfig {
 
         if ([string]::IsNullOrWhiteSpace($image)) {
             Write-Warning -Message ("Something has failed with item " + (($imagepost.Links | Where-Object { $_.outertext -like "Download" }).href).tostring())
-        
-        
 
         }
 
         if (Test-Path ($e621Attributes.DownloadFolder + $image.Split("/")[-1])) {
-            Write-verbose -Message ($image.Split("/")[-1] + " already exists!") 
+            Write-verbose -Message ($image.Split("/")[-1] + " already exists!")
         }
         else {
 
             Start-BitsTransfer -Source $Image -Destination $e621Attributes.DownloadFolder -Description ("https://e621.net/post" + "/show/" + ($item)) -DisplayName "Downloading Image"
-            
 
-        
-        
         }
 
     }
 
     #log the downloaded posts
     function LOGDOWNLOADEDPOSTS ($Posts) {
-    
+
         #load up the log of already downloaded posts
         $DLLog = Get-Content -path $UserLog
         #add the just downloaded posts
