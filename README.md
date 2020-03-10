@@ -1,6 +1,7 @@
 ---
-Tested: 2019-12-26
+Tested: 2020-03-06
 Version: v1.0.0
+Status: Broken
 ---
 
 # E621 Downloader
